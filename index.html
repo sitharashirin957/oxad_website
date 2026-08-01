@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OXAD - Products & Services</title>
+    <style>
+        :root {
+            --bg-color: #080808;
+            --card-bg: rgba(18, 18, 18, 0.85);
+            --accent-color: #0066ff;
+            --accent-hover: #3385ff;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(8, 8, 8, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+        }
+
+        .logo-container img {
+            height: 40px;
+            filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.5));
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .lang-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .cta-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.4);
+        }
+
+        .cta-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .hero {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 20px 60px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), var(--bg-color));
+        }
+
+        .hero-logo {
+            max-width: 380px;
+            width: 100%;
+            margin-bottom: 30px;
+            filter: drop-shadow(0px 20px 30px rgba(0, 102, 255, 0.4));
+            animation: heroLogoAnim 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, 
+                       floatLogo 6s ease-in-out 1.6s infinite;
+        }
+
+        @keyframes heroLogoAnim {
+            0% { opacity: 0; transform: scale(0.4) translateY(40px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .update-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 102, 255, 0.3);
+            color: #4d94ff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            animation: fadeInDown 1s ease 0.3s both;
+        }
+
+        .pulsing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #0066ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #0066ff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 102, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 102, 255, 0); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            max-width: 900px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #ffffff, #88b3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInDown 1s ease 0.5s both;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease 0.7s both;
+        }
+
+        .services-section {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 30px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .service-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            transform: translateY(30px);
+            opacity: 0;
+            animation: cardAppear 0.8s ease forwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        @keyframes cardAppear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(0, 102, 255, 0.25);
+        }
+
+        .service-img-wrap {
+            width: 100%;
+            height: 210px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .service-img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .service-card:hover .service-img-wrap img {
+            transform: scale(1.1);
+        }
+
+        .service-number {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent-color);
+            border: 1px solid rgba(0, 102, 255, 0.4);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            backdrop-filter: blur(5px);
+        }
+
+        [dir="rtl"] .service-number {
+            left: auto;
+            right: 15px;
+        }
+
+        .service-content {
+            padding: 25px;
+        }
+
+        .service-content h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .service-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .explore-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover .explore-btn {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #121212;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        [dir="rtl"] .close-modal {
+            right: auto;
+            left: 20px;
+        }
+
+        .close-modal:hover { color: var(--text-main); }
+
+        .modal-content h2 { margin-bottom: 15px; color: var(--accent-color); }
+        .modal-content p { color: var(--text-muted); line-height: 1.6; margin-bottom: 25px; }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        [dir="rtl"] { text-align: right; }
+        [dir="rtl"] .nav-right { flex-direction: row-reverse; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media(max-width: 768px) {
+            header { padding: 15px 20px; }
+            .hero h1 { font-size: 2.3rem; }
+            .hero-logo { max-width: 280px; }
+            .services-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <div class="logo-container">
+            <img src="oxad.png" alt="OXAD Logo">
+        </div>
+        <div class="nav-right">
+            <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">عربي / EN</button>
+            <button class="cta-btn" onclick="openContact()">Business Enquiry</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <img src="oxad.png" alt="OXAD Business Solutions" class="hero-logo">
+
+        <div class="update-badge">
+            <span class="pulsing-dot"></span>
+            <span id="updateText">Website Update in Progress</span>
+        </div>
+
+        <h1 id="heroTitle">Products & Services Catalog</h1>
+        <p id="heroSubtitle">Explore our comprehensive array of elite advertising, branding, fabrication, and promotional corporate solutions.</p>
+    </section>
+
+    <section class="services-section">
+        <div class="section-header">
+            <h2 id="sectionTitle">Complete Portfolio</h2>
+            <p id="sectionSubtitle">Click or hover on any product or service to discover global standards</p>
+        </div>
+
+        <div class="services-grid" id="servicesGrid"></div>
+    </section>
+
+    <div class="modal" id="serviceModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h2 id="modalTitle">Service Title</h2>
+            <p id="modalDesc">Detailed description goes here.</p>
+            <button class="cta-btn" onclick="openContact()">Enquire Now</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 OXAD Business Solution. Leading the Ad Horizon.</p>
+    </footer>
+
+    <script>
+        const productsData = [
+            {
+                num: "01",
+                en: { title: "Exterior Signs", desc: "Promotional Signs, Directional/ Way finding Signs, Safety Signs, Street Signs, Informational Signs, Branded Signs" },
+                ar: { title: "المنتجات والخدمات - لافتات خارجية وداخلية", desc: "لافتات إعلانية، لافتات إرشادية، لافتات السلامة، لافتات الشوارع، لافتات إعلامية والعلامات التجارية" },
+                img: "https://etihad-gf.com/wp-content/uploads/2026/06/ILLUMINATED-SIGNAGE-SOLUTIONS.jpg"
+            },            {
+                num: "02",
+                en: { title: "Interior Signs", desc: "Promotional Signs, Directional/ Way finding Signs, Safety Signs, Street Signs, Informational Signs, Branded Signs" },
+                ar: { title: "المنتجات والخدمات - لافتات خارجية وداخلية", desc: "لافتات إعلانية، لافتات إرشادية، لافتات السلامة، لافتات الشوارع، لافتات إعلامية والعلامات التجارية" },
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-XxmhYabQ-voKXPdYL-oV6nqTll_Qj-4VVhmWWB2ZK6aU-j_V9CYMMGIf&s=10"
+            },
+            {
+                num: "03",
+                en: { title: "Memento Awards", desc: "Memento, Plaques, Awards, Shields, Trophies, Sports cup, Medals" },
+                ar: { title: "جواز تذكارية", desc: "دروع تذكارية، لوحات تكريم، جوائز، كؤوس رياضية وميداليات" },
+                img: "https://www.merutrophy.in/cdn/shop/collections/Acrylic_Trophies_Collection_Image.png?v=1778981985"
+            },
+            {
+                num: "04",
+                en: { title: "Acrylic Products", desc: "Acrylic Display Stands, Frames, Boxes & Cases, Organizers, Blocks and other acrylic products" },
+                ar: { title: "منتجات الأكريليك", desc: "ستاندات عرض أكريليك، إطارات، صناديق وحافظات، منظمات وكتل أكريليك أخرى" },
+                img: "https://cdn11.bigcommerce.com/s-s2kw1vi/images/stencil/original/image-manager/custom-acrylic-fabrication-products.jpg?t=1783358352"
+            },
+            {
+                num: "05",
+                en: { title: "T-Shirt & Uniforms", desc: "Uniforms & Work-wear, T-shirts & Polos, Jerseys & Activewear, Caps & Hats, Backpacks & Tote Bags." },
+                ar: { title: "تي شيرت وزي رسمي", desc: "الزي الرسمي ملابس العمل، قمصان وبولو، ملابس رياضية، قبعات، حقائب ظهر وحقائب تسوق" },
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWNPUCQ6XRjYZU9D2zMjUdvkkUZm3dvWLiG8h_3V_8ewLsHMsMnWxfhMM&s=10"
+            },
+            {
+                num: "06",
+                en: { title: "Promotional Products", desc: "Corporate Gifts, Promotional Gifts, Promotional Products, Fun promotional Products, Marketing Promotional Products" },
+                ar: { title: "المنتجات الترويجية", desc: "هدايا الشركات، الهدايا الدعائية، المنتجات الترويجية الترفيهية ومنتجات التسويق" },
+                img: "https://www.entrepreneur.com/wp-content/uploads/sites/2/2018/06/20180626190521-GettyImages-941148470.jpeg"
+            },
+            {
+                num: "07",
+                en: { title: "Tags & Plates", desc: "Tags, Labels, Nameplates, Plaques, Pipe Markers, Duct Labels, Control Panels and Cable markers..." },
+                ar: { title: "العلامات واللوحات", desc: "بطاقات، ملصقات، لوحات الأسماء، علامات الأنابيب، لوحات التحكم وعلامات الكابلات" },
+                img: "https://www.thetrophytrolley.com/wp-content/uploads/2016/01/tags-5.png"
+            },
+            {
+                num: "08",
+                en: { title: "Badges & ID Cards", desc: "Epoxy Badges, Button badges, Metal and Plastic Engraved Badges, PVC ID Cards and Printed Lanyards, Badge Clips and Tag reels" },
+                ar: { title: "الشارات وبطاقات الهوية", desc: "شارات إيبوكسي، شارات معدنية وبلاستيكية محفورة، بطاقات تعريف PVC وأشرطة تعليق مطبوعة" },
+                img: "https://hazken.com/assets/images/bg/pvc-identity-cards.jpg"
+            },
+            {
+                num: "09",
+                en: { title: "Flags", desc: "Corporate Flags, Advertising Flags, Sports Flags, Car Flags, Country Flags, Table Flags, Flag Poles & Accessories..." },
+                ar: { title: "الأعلام", desc: "أعلام الشركات، أعلام إعلانية، أعلام رياضية، أعلام السيارات، أعلام الدول، وأعمدة الأعلام" },
+                img: "https://image.made-in-china.com/202f0j00IltRAeWCnFcr/Wholesale-Low-Price-Custom-Professional-Wooden-Stand-Desk-Flag.webp"
+            },
+            {
+                num: "10",
+                en: { title: "Display Stands", desc: "Promotion display Stands, Literature, Poster Display Stands and Sign Holders" },
+                ar: { title: "حوامل العرض", desc: "ستاندات العرض الترويجية، حاملات المطبوعات، ستاندات البوستر وحاملات اللافتات" },
+                img: "https://creatorsadv.com/wp-content/uploads/2023/08/display-1-Copy.png"
+            },
+            {
+                num: "11",
+                en: { title: "Exhibitions Booth & Banner Stands", desc: "Exhibition booth, Pop-Up, Roll-Up, X-Stands..." },
+                ar: { title: "أكشاك العرض وحوامل اللافتات", desc: "أكشاك المعارض، بوب أب، رول أب، وستاندات X" },
+                img: "https://www.bannerbuzz.co.nz/blog/wp-content/uploads/2026/01/Banner-Stand-Design-Tips-1024x441.webp"
+            },
+            {
+                num: "12",
+                en: { title: "Interior", desc: "Office and Show Rooms Interior works" },
+                ar: { title: "الداخلية", desc: "أعمال الديكور والتصميم الداخلي للمكاتب ومعارض العرض" },
+                img: "https://aspireluxuryproperties.com/wp-content/uploads/2023/04/interior-designer-with-3D-model-home-1024x683.jpeg"
+            },
+            {
+                num: "13",
+                en: { title: "Fleet Marking / Vehicle Branding", desc: "Cars, Vans, Bus, Semi-Tractors, Trailers, Rvs, boats and more" },
+                ar: { title: "وضع علامات على الأسطول / علامات المركبات", desc: "سيارات، شاحنات، حافلات، مقطورات، قوارب وأكثر" },
+                img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwp4Dgn7ZmDm6RJiIGK54G9tDFTPJq5oGcdwW-OYZmEZLTNdWxHXG3V0M&s=10"
+            },
+            {
+                num: "14",
+                en: { title: "Paper Bags", desc: "Premium Gift Bags, Shopping Bags, Cosmetics Bags, Kraft Bags, Wine Bags, Apparel Bags, Art Paper Bags and Custom Bags." },
+                ar: { title: "أكياس ورقية", desc: "أكياس هدايا فاخرة، أكياس تسوق، أكياس مستحضرات تجميل، أكياس كرافت وأكياس مخصصة" },
+                img: "https://sc04.alicdn.com/kf/H058a84bcea544c22a98d712d9c5f391eH.jpg"
+            },
+            {
+                num: "15",
+                en: { title: "Large Format Printing", desc: "Indoors or Outdoors Vinyls, Posters, Banners, Fabrics and window stickers that can be used on any type of surface." },
+                ar: { title: "الطباعة كبيرة الحجم", desc: "فيلين داخلي أو خارجي، بوسترات، لافتات، أقمشة وملصقات زجاجية تناسب جميع الأسطح" },
+                img: "https://www.kopytek.com/wp-content/uploads/2019/09/kopytek-20191015.jpg"
+            }
+        ];
+
+        let currentLang = 'en';
+
+        function renderServices() {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = '';
+            productsData.forEach((item) => {
+                const langData = item[currentLang];
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                card.innerHTML = `
+                    <div class="service-img-wrap">
+                        <span class="service-number">${item.num}</span>
+                        <img src="${item.img}" alt="${langData.title}">
+                    </div>
+                    <div class="service-content">
+                        <h3>${langData.title}</h3>
+                        <p>${langData.desc}</p>
+                        <button class="explore-btn">${currentLang === 'ar' ? 'استكشف الخدمات ←' : 'Explore services →'}</button>
+                    </div>
+                `;
+                card.onclick = () => openModal(langData.title, langData.desc);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+            document.documentElement.setAttribute('lang', currentLang);
+            
+            if(currentLang === 'ar') {
+                document.getElementById('updateText').innerText = 'جاري تحديث الموقع الإلكتروني';
+                document.getElementById('heroTitle').innerText = 'كتالوج المنتجات والخدمات';
+                document.getElementById('heroSubtitle').innerText = 'استكشف مجموعتنا الشاملة من حلول الإعلان والعلامات التجارية والتصنيع الفاخرة للشركات.';
+                document.getElementById('sectionTitle').innerText = 'المحفظة الكاملة';
+                document.getElementById('sectionSubtitle').innerText = 'انقر فوق أي منتج أو خدمة لاكتشاف المعايير العالمية';
+            } else {
+                document.getElementById('updateText').innerText = 'Website Update in Progress';
+                document.getElementById('heroTitle').innerText = 'Products & Services Catalog';
+                document.getElementById('heroSubtitle').innerText = 'Explore our comprehensive array of elite advertising, branding, fabrication, and promotional corporate solutions.';
+                document.getElementById('sectionTitle').innerText = 'Complete Portfolio';
+                document.getElementById('sectionSubtitle').innerText = 'Click or hover on any product or service to discover global standards';
+            }
+            renderServices();
+        }
+
+        function openModal(title, desc) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('serviceModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('serviceModal').style.display = 'none';
+        }
+
+        function openContact() {
+            window.location.href = "mailto:info@oxad.com";
+        }
+
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, particles;
+
+        function initCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 50; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    radius: Math.random() * 1.5 + 0.5
+                });
+            }
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            
+            const gradient = ctx.createRadialGradient(width * 0.5, height * 0.2, 50, width * 0.5, height * 0.2, width * 0.6);
+            gradient.addColorStop(0, 'rgba(0, 102, 255, 0.08)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = 'rgba(0, 102, 255, 0.4)';
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > width) p.vx = -p.vx;
+                if (p.y < 0 || p.y > height) p.vy = -p.vy;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animateCanvas);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        animateCanvas();
+        renderServices();
+    </script>
+</body>
+</html>
