@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Digital Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Cropper.js for Image Cropping -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2979ff;
+            --primary-dark: #0d47a1;
+            --bg-dark: #07090e;
+            --card-bg: #11131a;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            perspective: 1200px;
+        }
+
+        /* പശ്ചാത്തലത്തിലെ ആനിമേഷൻ (Background Particles & Glow) */
+        .ambient-light {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 15% 50%, rgba(13, 71, 161, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 85% 30%, rgba(41, 121, 255, 0.15) 0%, transparent 50%);
+            z-index: -2;
+            animation: breathe 8s infinite alternate ease-in-out;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.95); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* കാർഡ് കണ്ടെയ്നർ (Card Container) */
+        .digital-card {
+            background: linear-gradient(160deg, #1a1d27 0%, #0d0f14 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 1),
+                        inset 0 2px 5px rgba(255, 255, 255, 0.05),
+                        inset 0 -2px 10px rgba(41, 121, 255, 0.1);
+            width: 90%;
+            max-width: 380px;
+            border-radius: 30px;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: rotateX(30deg) translateY(60px) scale(0.9);
+            animation: cardEntrance 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out;
+        }
+
+        @keyframes cardEntrance {
+            to { opacity: 1; transform: rotateX(0deg) translateY(0) scale(1); }
+        }
+
+        /* ഷിമ്മർ ഇഫക്റ്റ് (Shimmer Sweep Effect) */
+        .shimmer-effect {
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.1) 50%, 
+                rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shimmerSweep 5s infinite;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @keyframes shimmerSweep {
+            0% { left: -150%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        .animate-item {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        .delay-1 { animation-delay: 0.3s; }
+        .delay-2 { animation-delay: 0.5s; }
+        .delay-3 { animation-delay: 0.7s; }
+        .delay-4 { animation-delay: 0.9s; }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .primary-gradient-btn {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+            box-shadow: 0 10px 25px -5px rgba(41, 121, 255, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .primary-gradient-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px -5px rgba(41, 121, 255, 0.7);
+        }
+
+        /* എഡിറ്റ് ബട്ടൺ (Floating Edit Button) */
+        .edit-fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            box-shadow: 0 10px 25px rgba(255, 65, 108, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .edit-fab:hover { transform: scale(1.1) rotate(15deg); }
+
+        /* മോഡലുകൾ (Modals) */
+        .custom-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+        }
+        .custom-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 90%;
+            max-width: 420px;
+            border-radius: 24px;
+            padding: 30px;
+            transform: translateY(50px) scale(0.9);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .custom-modal.active .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        /* ഇൻപുട്ടുകൾ (Form Inputs) */
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block; font-size: 12px; color: #888; margin-bottom: 5px; text-transform: uppercase;
+        }
+        .input-group input {
+            width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            color: white; padding: 12px 15px; border-radius: 12px; font-family: 'Montserrat', sans-serif;
+        }
+        .input-group input:focus { outline: none; border-color: var(--primary); }
+        
+        /* അപ്‌ലോഡ് (Upload Wrapper) */
+        .file-upload-wrapper {
+            position: relative; width: 100%; height: 100px; border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; color: #aaa; cursor: pointer; transition: all 0.3s; overflow: hidden;
+        }
+        .file-upload-wrapper:hover { border-color: var(--primary); color: white; }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .file-preview {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            background-color: var(--card-bg); z-index: 10; display: none;
+        }
+
+        /* ക്രോപ്പർ കണ്ടെയ്നർ (Cropper Area) */
+        .img-container {
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        /* ലോഡിങ് സ്പിന്നർ (Loading Spinner) */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-light"></div>
+
+    <!-- പ്രധാന ഡിജിറ്റൽ കാർഡ് (MAIN DIGITAL CARD) -->
+    <div class="digital-card" id="cardElement">
+        <div class="shimmer-effect"></div>
+        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600 rounded-full mix-blend-screen filter blur-[60px] opacity-20"></div>
+
+        <!-- ലോഗോ (LOGO DISPLAY) -->
+        <div class="text-center mb-8 relative z-10 animate-item delay-1">
+            <img src="" alt="Brand Logo" class="mx-auto h-32 object-contain mb-1 drop-shadow-2xl transition-all duration-500" id="display-logo" style="display: none;">
+            <div id="logo-placeholder" class="h-32 flex items-center justify-center border border-dashed border-gray-700 rounded-xl mb-1 text-gray-500">
+                <div class="text-center">
+                    <i class="fas fa-image text-3xl mb-2"></i>
+                    <p class="text-xs">No Logo Uploaded</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- പ്രൊഫൈൽ വിവരങ്ങൾ (PROFILE DISPLAY) -->
+        <div class="mb-8 relative z-10 animate-item delay-2 border-l-4 border-blue-500 pl-4">
+            <h2 class="text-2xl font-bold text-white mb-1 tracking-wide uppercase" id="display-name">YOUR NAME</h2>
+            <p class="text-xs text-blue-400 mb-3 uppercase tracking-widest font-semibold" id="display-title">YOUR POSITION</p>
+            <div class="flex items-center gap-3 mt-2">
+                <a href="#" class="text-gray-200 text-lg hover:text-white transition font-medium flex items-center gap-2" id="display-phone-link">
+                    <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                        <i class="fas fa-phone-alt text-blue-500 text-xs"></i>
+                    </div>
+                    <span id="display-phone">+000 000 0000</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ഐക്കണുകൾ (HIGHLIGHTS) -->
+        <div class="flex justify-between items-center mb-8 relative z-10 bg-white/5 rounded-xl py-3 px-2 border border-white/10 animate-item delay-3 backdrop-blur-md">
+            <div class="text-center w-1/2 px-2 border-r border-gray-700/50">
+                <i class="fas fa-chart-pie text-blue-400 text-lg mb-1"></i>
+                <p class="text-[9px] text-gray-300 font-semibold tracking-widest uppercase">Growth &<br>Success</p>
+            </div>
+            <div class="text-center w-1/2 px-2">
+                <i class="fas fa-shield-check text-blue-400 text-lg mb-1"></i>
+                <p class="text-[9px] text-gray-300 font-semibold tracking-widest uppercase">Trust &<br>Reliability</p>
+            </div>
+        </div>
+
+        <!-- ബട്ടണുകൾ (ACTIONS) -->
+        <div class="flex flex-col gap-3 relative z-10 animate-item delay-4">
+            <div class="flex gap-3">
+                <a href="#" id="action-whatsapp" target="_blank" class="glass-btn flex-1 py-3 rounded-xl text-center text-gray-200 flex items-center justify-center gap-2 text-sm font-semibold">
+                    <i class="fab fa-whatsapp text-green-400 text-xl"></i> Chat
+                </a>
+                <button onclick="shareCard()" class="glass-btn flex-1 py-3 rounded-xl text-center text-gray-200 flex items-center justify-center gap-2 text-sm font-semibold" id="share-btn-text">
+                    <i class="fas fa-paper-plane text-blue-400"></i> <span id="share-text-span">Share</span>
+                    <span class="loader" id="share-loader"></span>
+                </button>
+            </div>
+            <button onclick="downloadVCard()" class="primary-gradient-btn w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-white mt-1 uppercase tracking-wider">
+                <i class="fas fa-address-card text-lg"></i> Save to Contacts
+            </button>
+        </div>
+    </div>
+
+    <!-- എഡിറ്റ് ബട്ടൺ (FLOATING EDIT BUTTON) -->
+    <div class="edit-fab" onclick="toggleModal('editModal')" title="Edit Card Details">
+        <i class="fas fa-pen"></i>
+    </div>
+
+    <!-- എഡിറ്റ് മോഡൽ (EDIT / BUILDER MODAL) -->
+    <div class="custom-modal" id="editModal">
+        <div class="modal-content relative">
+            <button onclick="toggleModal('editModal')" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 class="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-3">Edit Card Details</h3>
+            
+            <div class="input-group">
+                <label>Upload & Crop Logo</label>
+                <div class="file-upload-wrapper">
+                    <i class="fas fa-crop-alt text-2xl mb-2 text-blue-400"></i>
+                    <span class="text-xs">Click to upload image</span>
+                    <input type="file" id="upload-logo" accept="image/png, image/jpeg" onchange="openCropModal(event)">
+                    <div class="file-preview" id="preview-logo-overlay"></div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="input-name" placeholder="E.g. Mohammed Riyas">
+            </div>
+
+            <div class="input-group">
+                <label>Position / Title</label>
+                <input type="text" id="input-title" placeholder="E.g. Managing Director">
+            </div>
+
+            <div class="input-group">
+                <label>Phone Number (with Country Code)</label>
+                <input type="text" id="input-phone" placeholder="E.g. 966536961131">
+            </div>
+
+            <button onclick="saveAndApply()" class="primary-gradient-btn w-full py-3 mt-4 rounded-xl font-bold text-sm text-white">
+                <i class="fas fa-check-circle mr-2"></i> Save Changes
+            </button>
+        </div>
+    </div>
+
+    <!-- ക്രോപ്പ് മോഡൽ (CROP MODAL) -->
+    <div class="custom-modal" id="cropModal" style="z-index: 2000;">
+        <div class="modal-content relative">
+            <h3 class="text-lg font-bold mb-4 text-white">Crop Your Logo</h3>
+            <div class="img-container">
+                <img id="cropImage" src="" alt="Picture to crop" style="max-width: 100%;">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="cancelCrop()" class="glass-btn flex-1 py-2 rounded-xl text-sm font-bold">Cancel</button>
+                <button onclick="saveCrop()" class="primary-gradient-btn flex-1 py-2 rounded-xl text-sm font-bold text-white">Crop & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ഡാറ്റ സ്റ്റേറ്റ് (Global State)
+        let cardData = {
+            n: "Mohammed Riyas",
+            t: "Managing Director",
+            p: "966536961131",
+            l: "" // Base64 Image
+        };
+
+        let cropper = null;
+        let lastGeneratedShortUrl = null; // To cache the short link
+
+        // --- 1. ലോഡ് ചെയ്യുമ്പോൾ ഡാറ്റ എടുക്കുക (INITIAL LOAD & PARSE URL) ---
+        window.onload = () => {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#data=')) {
+                try {
+                    const encodedData = hash.substring(6);
+                    const decodedStr = decodeURIComponent(atob(encodedData));
+                    const parsedData = JSON.parse(decodedStr);
+                    cardData = { ...cardData, ...parsedData };
+                } catch(e) { console.error("Data parse error"); }
+            }
+            updateCardDisplay();
+            populateForm();
+        };
+
+        // --- 2. ഡിസ്പ്ലേ അപ്ഡേറ്റ് ചെയ്യുക (UPDATE UI FROM STATE) ---
+        function updateCardDisplay() {
+            document.getElementById('display-name').textContent = cardData.n || 'YOUR NAME';
+            document.getElementById('display-title').textContent = cardData.t || 'YOUR POSITION';
+            
+            let phoneDisplay = cardData.p || '0000000000';
+            if(!phoneDisplay.startsWith('+')) phoneDisplay = '+' + phoneDisplay;
+            document.getElementById('display-phone').textContent = phoneDisplay;
+            
+            let cleanPhone = (cardData.p || '').replace(/[^0-9]/g, '');
+            document.getElementById('display-phone-link').href = `tel:+${cleanPhone}`;
+            document.getElementById('action-whatsapp').href = `https://wa.me/${cleanPhone}`;
+
+            const logoImg = document.getElementById('display-logo');
+            const placeholder = document.getElementById('logo-placeholder');
+            
+            if (cardData.l && cardData.l !== "") {
+                logoImg.src = cardData.l;
+                logoImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                
+                const previewOverlay = document.getElementById('preview-logo-overlay');
+                previewOverlay.style.backgroundImage = `url(${cardData.l})`;
+                previewOverlay.style.display = 'block';
+            } else {
+                logoImg.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        function populateForm() {
+            document.getElementById('input-name').value = cardData.n || '';
+            document.getElementById('input-title').value = cardData.t || '';
+            document.getElementById('input-phone').value = cardData.p || '';
+        }
+
+        function toggleModal(modalId) {
+            document.getElementById(modalId).classList.toggle('active');
+        }
+
+        // --- 3. ഇമേജ് ക്രോപ്പിങ് സിസ്റ്റം (IMAGE CROPPER) ---
+        function openCropModal(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const image = document.getElementById('cropImage');
+                image.src = e.target.result;
+                
+                toggleModal('cropModal'); // Show crop modal
+
+                // Initialize Cropper.js
+                if(cropper) { cropper.destroy(); }
+                cropper = new Cropper(image, {
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false,
+                    responsive: true
+                });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // Reset input
+        }
+
+        function cancelCrop() {
+            if(cropper) { cropper.destroy(); }
+            toggleModal('cropModal');
+        }
+
+        function saveCrop() {
+            if(!cropper) return;
+            // Get cropped image as canvas
+            const canvas = cropper.getCroppedCanvas({
+                maxWidth: 200, // Small size to keep URL short
+                maxHeight: 200
+            });
+            
+            // Compress to JPEG for smaller base64 string
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+            
+            cardData.l = compressedBase64;
+            
+            const previewOverlay = document.getElementById('preview-logo-overlay');
+            previewOverlay.style.backgroundImage = `url(${compressedBase64})`;
+            previewOverlay.style.display = 'block';
+
+            lastGeneratedShortUrl = null; // Reset short link as data changed
+            cancelCrop();
+        }
+
+        // --- 4. ഡാറ്റ സേവ് ചെയ്യുക (SAVE & APPLY) ---
+        window.lastGeneratedHash = "";
+
+        function saveAndApply() {
+            cardData.n = document.getElementById('input-name').value.trim();
+            cardData.t = document.getElementById('input-title').value.trim();
+            cardData.p = document.getElementById('input-phone').value.trim();
+
+            updateCardDisplay();
+            
+            const jsonStr = JSON.stringify(cardData);
+            const encodedData = btoa(encodeURIComponent(jsonStr));
+            const hashData = '#data=' + encodedData;
+            window.lastGeneratedHash = hashData;
+            lastGeneratedShortUrl = null; // New data means new short link needed
+            
+            try {
+                const newUrl = window.location.origin + window.location.pathname + hashData;
+                window.history.replaceState(null, '', newUrl);
+            } catch (e) {
+                try { window.location.hash = hashData; } catch (err) {}
+            }
+
+            toggleModal('editModal');
+            
+            const card = document.getElementById('cardElement');
+            card.style.transform = 'scale(1.05)';
+            setTimeout(() => { card.style.transform = 'scale(1)'; }, 300);
+        }
+
+        // --- 5. ഫ്രീ ഷോർട്ട് ലിങ്ക് ഉണ്ടാക്കുക & ഷെയർ ചെയ്യുക (FREE SHORT LINK GENERATOR) ---
+        async function shareCard() {
+            const btnText = document.getElementById('share-btn-text');
+            const spanText = document.getElementById('share-text-span');
+            const loader = document.getElementById('share-loader');
+            
+            let baseUrl = window.location.origin + window.location.pathname;
+            
+            // --- ATTENTION: PREVIEW WINDOW CHECK ---
+            // AI Preview window-il ninnu share cheythal error verum, athukond user-od host cheyyan parayunnu.
+            if(baseUrl.includes('blob:') || baseUrl.includes('usercontent.goog')) {
+                alert("⚠️ ശ്രദ്ധിക്കുക: നിങ്ങൾ ഇപ്പോൾ പ്രിവ്യൂ വിൻഡോയിലാണ് ഉള്ളത്.\n\nഇതിൽ നിന്നും നേരിട്ട് ലിങ്ക് ഷെയർ ചെയ്യാൻ കഴിയില്ല. ദയവായി മുകളിലുള്ള ബട്ടൺ ഉപയോഗിച്ച് കോഡ് ഡൗൺലോഡ് ചെയ്ത് tiiny.host എന്ന വെബ്സൈറ്റിൽ അപ്‌ലോഡ് ചെയ്യുക. അതിനുശേഷം അതിൽ നിന്നും ഷെയർ ചെയ്യുക!");
+                return;
+            }
+            
+            const longUrl = baseUrl + (window.lastGeneratedHash || window.location.hash);
+            let shareUrl = longUrl;
+
+            // Generate TinyURL if not already cached
+            if(!lastGeneratedShortUrl) {
+                spanText.textContent = " Generating...";
+                loader.style.display = 'inline-block';
+                
+                try {
+                    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
+                    if(response.ok) {
+                        shareUrl = await response.text();
+                        lastGeneratedShortUrl = shareUrl;
+                    }
+                } catch(err) {
+                    console.log("URL shortener failed, using long URL.");
+                }
+                
+                loader.style.display = 'none';
+                spanText.textContent = " Share";
+            } else {
+                shareUrl = lastGeneratedShortUrl;
+            }
+
+            const shareData = {
+                title: `${cardData.n} - Digital Card`,
+                text: `Here is my digital business card. Click to view!`,
+                url: shareUrl
+            };
+
+            const originalHTML = btnText.innerHTML;
+
+            if (navigator.share) {
+                navigator.share(shareData).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    btnText.innerHTML = '<i class="fas fa-check text-green-400"></i> Copied!';
+                    setTimeout(() => { btnText.innerHTML = originalHTML; }, 2000);
+                });
+            }
+        }
+
+        // --- 6. കോൺടാക്റ്റ് സേവ് (SAVE TO CONTACTS) ---
+        function downloadVCard() {
+            const cleanPhone = (cardData.p || '').replace(/[^0-9+]/g, '');
+            const phoneStr = cleanPhone.startsWith('+') ? cleanPhone : '+' + cleanPhone;
+            const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${cardData.n || ''}\nORG:OXAD BUSINESS SOLUTION\nTITLE:${cardData.t || ''}\nTEL;TYPE=WORK,VOICE:${phoneStr}\nEND:VCARD`;
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${(cardData.n || 'Contact').replace(/\s+/g, '_')}.vcf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- 7. 3D ടിൽറ്റ് ഇഫക്റ്റ് (MOUSE 3D TILT EFFECT) ---
+        const card = document.getElementById('cardElement');
+        document.addEventListener('mousemove', (e) => {
+            if(window.innerWidth > 768 && !document.getElementById('editModal').classList.contains('active') && !document.getElementById('cropModal').classList.contains('active')) {
+                const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
+                const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+                card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            }
+        });
+        
+        document.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+        });
+    </script>
+</body>
+</html>
