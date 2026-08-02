@@ -34,6 +34,7 @@
             align-items: center;
             min-height: 100vh;
             perspective: 1400px;
+            transition: background-color 0.5s ease;
         }
 
         /* Ambient International Glow Effect */
@@ -72,7 +73,7 @@
             transform: rotateX(25deg) translateY(50px) scale(0.92);
             animation: cardEntrance 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             transform-style: preserve-3d;
-            transition: transform 0.2s ease-out;
+            transition: transform 0.2s ease-out, background 0.5s ease;
         }
 
         @keyframes cardEntrance {
@@ -204,6 +205,29 @@
         }
         .input-group input:focus { outline: none; border-color: var(--primary); background: rgba(41, 121, 255, 0.05); }
         
+        /* Color Picker Style */
+        .color-picker-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .color-picker-wrapper input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            cursor: pointer;
+            background: transparent;
+        }
+        .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+        }
+
         /* Upload Wrapper */
         .file-upload-wrapper {
             position: relative; width: 100%; height: 90px; border: 2px dashed rgba(255,255,255,0.2);
@@ -362,7 +386,7 @@
 
             <!-- Profile Photo Upload & Remove -->
             <div class="input-group">
-                <label>Profile Photo (Optional)</label>
+                <label>Profile Photo (Optional - High Quality)</label>
                 <div class="flex gap-2">
                     <div class="file-upload-wrapper flex-1">
                         <i class="fas fa-user-circle text-xl mb-1 text-blue-400"></i>
@@ -375,19 +399,28 @@
                 </div>
             </div>
 
+            <!-- Custom Card Background Color -->
+            <div class="input-group">
+                <label>Card Background Color</label>
+                <div class="color-picker-wrapper">
+                    <input type="color" id="input-bgColor" value="#161923" onchange="previewBgColor(this.value)">
+                    <span class="text-xs text-gray-300">Choose custom background shade</span>
+                </div>
+            </div>
+
             <div class="input-group">
                 <label>Full Name</label>
-                <input type="text" id="input-name" placeholder="E.g. NAME HERE">
+                <input type="text" id="input-name" placeholder="E.g. NAME">
             </div>
 
             <div class="input-group">
                 <label>Position / Title</label>
-                <input type="text" id="input-title" placeholder="E.g. Title Here">
+                <input type="text" id="input-title" placeholder="E.g. Title">
             </div>
 
             <div class="input-group">
                 <label>Phone Number (with Country Code)</label>
-                <input type="text" id="input-phone" placeholder="E.g. 966500000000">
+                <input type="text" id="input-phone" placeholder="E.g. 9660000000">
             </div>
 
             <button onclick="saveAndApply()" class="primary-gradient-btn w-full py-3.5 mt-2 rounded-xl font-bold text-xs uppercase tracking-wider text-white">
@@ -413,11 +446,12 @@
     <script>
         // Global State
         let cardData = {
-            n: "NAME HERE",
+            n: "Name Here",
             t: "Title Here",
-            p: "966500000000",
-            l: "", // Logo Base64
-            ph: "" // Profile Photo Base64
+            p: "9660000000",
+            l: "",  // Logo Base64
+            ph: "", // Profile Photo Base64
+            bg: "#161923" // Background color custom
         };
 
         let cropper = null;
@@ -456,6 +490,12 @@
             document.getElementById('display-phone-link').href = `tel:+${cleanPhone}`;
             document.getElementById('action-whatsapp').href = `https://wa.me/${cleanPhone}`;
 
+            // Apply custom card background if available
+            if (cardData.bg) {
+                const cardEl = document.getElementById('cardElement');
+                cardEl.style.background = `linear-gradient(160deg, ${cardData.bg} 0%, #0a0c10 100%)`;
+            }
+
             // Logo Display Logic
             const logoImg = document.getElementById('display-logo');
             const placeholder = document.getElementById('logo-placeholder');
@@ -485,6 +525,14 @@
             document.getElementById('input-name').value = cardData.n || '';
             document.getElementById('input-title').value = cardData.t || '';
             document.getElementById('input-phone').value = cardData.p || '';
+            if (cardData.bg) {
+                document.getElementById('input-bgColor').value = cardData.bg;
+            }
+        }
+
+        function previewBgColor(colorHex) {
+            const cardEl = document.getElementById('cardElement');
+            cardEl.style.background = `linear-gradient(160deg, ${colorHex} 0%, #0a0c10 100%)`;
         }
 
         function toggleModal(modalId) {
@@ -497,7 +545,7 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            document.getElementById('cropModalTitle').textContent = type === 'logo' ? 'Crop Company Logo' : 'Crop Profile Photo';
+            document.getElementById('cropModalTitle').textContent = type === 'logo' ? 'Crop Company Logo' : 'Crop Profile Photo (High Quality)';
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -526,14 +574,17 @@
 
         function saveCrop() {
             if(!cropper) return;
-            // Optimized dimensions and compression to keep URL length well within limits for TinyURL
-            const maxDim = currentCropType === 'logo' ? 180 : 140;
+            
+            // High quality dimensions for profile photo (larger resolution) and optimized for logo
+            const maxDim = currentCropType === 'logo' ? 220 : 350;
+            const qualitySetting = currentCropType === 'photo' ? 0.85 : 0.7; // Higher quality for photo
+            
             const canvas = cropper.getCroppedCanvas({
                 maxWidth: maxDim, 
                 maxHeight: maxDim
             });
             
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', qualitySetting);
             
             if (currentCropType === 'logo') {
                 cardData.l = compressedBase64;
@@ -565,6 +616,7 @@
             cardData.n = document.getElementById('input-name').value.trim();
             cardData.t = document.getElementById('input-title').value.trim();
             cardData.p = document.getElementById('input-phone').value.trim();
+            cardData.bg = document.getElementById('input-bgColor').value;
 
             updateCardDisplay();
             
