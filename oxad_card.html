@@ -575,8 +575,8 @@
         function saveCrop() {
             if(!cropper) return;
             
-            // Render to canvas supporting PNG transparency for logo and high quality JPEG for photo
-            const maxDim = currentCropType === 'logo' ? 240 : 360;
+            // Smart optimization for both photo and logo to prevent link length limits
+            const maxDim = currentCropType === 'logo' ? 220 : 280;
             const canvas = cropper.getCroppedCanvas({
                 maxWidth: maxDim, 
                 maxHeight: maxDim
@@ -584,12 +584,11 @@
             
             let compressedBase64 = "";
             if (currentCropType === 'logo') {
-                // Keep PNG format for logos to preserve transparency (no white background box)
                 compressedBase64 = canvas.toDataURL('image/png');
                 cardData.l = compressedBase64;
             } else {
-                // High quality JPEG for profile photo
-                compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+                // Optimized JPEG compression for profile photo ensuring quality and small hash size
+                compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
                 cardData.ph = compressedBase64;
             }
 
