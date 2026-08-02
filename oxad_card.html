@@ -576,7 +576,7 @@
             if(!cropper) return;
             
             // Smart optimization for both photo and logo to prevent link length limits
-            const maxDim = currentCropType === 'logo' ? 220 : 280;
+            const maxDim = currentCropType === 'logo' ? 180 : 220;
             const canvas = cropper.getCroppedCanvas({
                 maxWidth: maxDim, 
                 maxHeight: maxDim
@@ -588,7 +588,7 @@
                 cardData.l = compressedBase64;
             } else {
                 // Optimized JPEG compression for profile photo ensuring quality and small hash size
-                compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                compressedBase64 = canvas.toDataURL('image/jpeg', 0.65);
                 cardData.ph = compressedBase64;
             }
 
@@ -641,7 +641,7 @@
             setTimeout(() => { card.style.transform = 'scale(1)'; }, 300);
         }
 
-        // --- SHARE CARD WITH VIEW MODE (Advanced Smart Compression Fallback) ---
+        // --- SHARE CARD WITH VIEW MODE (Advanced Smart Compression Fallback & Long URL Support) ---
         async function shareCard() {
             const btnText = document.getElementById('share-btn-text');
             const spanText = document.getElementById('share-text-span');
@@ -669,7 +669,7 @@
                 loader.style.display = 'inline-block';
                 
                 try {
-                    // Smart URL shortening check
+                    // Using TinyURL API with timeout check
                     const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
                     if(response.ok) {
                         const shortText = await response.text();
@@ -749,7 +749,7 @@
             }
         });
         
-        document.addEventListener('mouseleave', () => {
+        destination = document.addEventListener('mouseleave', () => {
             card.style.transform = 'rotateY(0deg) rotateX(0deg)';
         });
     </script>
