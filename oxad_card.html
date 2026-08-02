@@ -307,8 +307,8 @@
         </div>
     </div>
 
-    <!-- എഡിറ്റ് ബട്ടൺ (FLOATING EDIT BUTTON) -->
-    <div class="edit-fab" onclick="toggleModal('editModal')" title="Edit Card Details">
+    <!-- എഡിറ്റ് ബട്ടൺ (FLOATING EDIT BUTTON) - ഇത് ഷെയർ ചെയ്യുമ്പോൾ ഹൈഡ് ആകും -->
+    <div class="edit-fab" onclick="toggleModal('editModal')" title="Edit Card Details" id="editFab">
         <i class="fas fa-pen"></i>
     </div>
 
@@ -375,10 +375,19 @@
         };
 
         let cropper = null;
-        let lastGeneratedShortUrl = null; // To cache the short link
+        let lastGeneratedShortUrl = null; 
 
-        // --- 1. ലോഡ് ചെയ്യുമ്പോൾ ഡാറ്റ എടുക്കുക (INITIAL LOAD & PARSE URL) ---
+        // --- 1. ലോഡ് ചെയ്യുമ്പോൾ ഡാറ്റ എടുക്കുക & വ്യൂ മോഡ് ചെക്ക് ചെയ്യുക ---
         window.onload = () => {
+            // Check for View Mode (If ?v=1 exists, hide edit button)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('v') || urlParams.get('v') === '1') {
+                const editButton = document.getElementById('editFab');
+                if (editButton) {
+                    editButton.style.display = 'none';
+                }
+            }
+
             const hash = window.location.hash;
             if (hash && hash.startsWith('#data=')) {
                 try {
@@ -392,7 +401,7 @@
             populateForm();
         };
 
-        // --- 2. ഡിസ്പ്ലേ അപ്ഡേറ്റ് ചെയ്യുക (UPDATE UI FROM STATE) ---
+        // --- 2. ഡിസ്പ്ലേ അപ്ഡേറ്റ് ചെയ്യുക (UPDATE UI) ---
         function updateCardDisplay() {
             document.getElementById('display-name').textContent = cardData.n || 'YOUR NAME';
             document.getElementById('display-title').textContent = cardData.t || 'YOUR POSITION';
@@ -442,9 +451,8 @@
                 const image = document.getElementById('cropImage');
                 image.src = e.target.result;
                 
-                toggleModal('cropModal'); // Show crop modal
+                toggleModal('cropModal'); 
 
-                // Initialize Cropper.js
                 if(cropper) { cropper.destroy(); }
                 cropper = new Cropper(image, {
                     viewMode: 1,
@@ -454,7 +462,7 @@
                 });
             };
             reader.readAsDataURL(file);
-            event.target.value = ''; // Reset input
+            event.target.value = ''; 
         }
 
         function cancelCrop() {
@@ -464,22 +472,19 @@
 
         function saveCrop() {
             if(!cropper) return;
-            // Get cropped image as canvas
             const canvas = cropper.getCroppedCanvas({
-                maxWidth: 200, // Small size to keep URL short
+                maxWidth: 200, 
                 maxHeight: 200
             });
             
-            // Compress to JPEG for smaller base64 string
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-            
             cardData.l = compressedBase64;
             
             const previewOverlay = document.getElementById('preview-logo-overlay');
             previewOverlay.style.backgroundImage = `url(${compressedBase64})`;
             previewOverlay.style.display = 'block';
 
-            lastGeneratedShortUrl = null; // Reset short link as data changed
+            lastGeneratedShortUrl = null; 
             cancelCrop();
         }
 
@@ -497,10 +502,12 @@
             const encodedData = btoa(encodeURIComponent(jsonStr));
             const hashData = '#data=' + encodedData;
             window.lastGeneratedHash = hashData;
-            lastGeneratedShortUrl = null; // New data means new short link needed
+            lastGeneratedShortUrl = null; 
             
             try {
-                const newUrl = window.location.origin + window.location.pathname + hashData;
+                // Ensure ?v=1 is removed from our own view so we don't accidentally hide the edit button for ourselves
+                let cleanUrl = window.location.origin + window.location.pathname;
+                const newUrl = cleanUrl + hashData;
                 window.history.replaceState(null, '', newUrl);
             } catch (e) {
                 try { window.location.hash = hashData; } catch (err) {}
@@ -513,7 +520,7 @@
             setTimeout(() => { card.style.transform = 'scale(1)'; }, 300);
         }
 
-        // --- 5. ഫ്രീ ഷോർട്ട് ലിങ്ക് ഉണ്ടാക്കുക & ഷെയർ ചെയ്യുക (FREE SHORT LINK GENERATOR) ---
+        // --- 5. വ്യൂ മോഡിൽ ഷെയർ ചെയ്യുക (SHARE FUNCTION WITH VIEW MODE) ---
         async function shareCard() {
             const btnText = document.getElementById('share-btn-text');
             const spanText = document.getElementById('share-text-span');
@@ -521,17 +528,22 @@
             
             let baseUrl = window.location.origin + window.location.pathname;
             
-            // --- ATTENTION: PREVIEW WINDOW CHECK ---
-            // AI Preview window-il ninnu share cheythal error verum, athukond user-od host cheyyan parayunnu.
             if(baseUrl.includes('blob:') || baseUrl.includes('usercontent.goog')) {
                 alert("⚠️ ശ്രദ്ധിക്കുക: നിങ്ങൾ ഇപ്പോൾ പ്രിവ്യൂ വിൻഡോയിലാണ് ഉള്ളത്.\n\nഇതിൽ നിന്നും നേരിട്ട് ലിങ്ക് ഷെയർ ചെയ്യാൻ കഴിയില്ല. ദയവായി മുകളിലുള്ള ബട്ടൺ ഉപയോഗിച്ച് കോഡ് ഡൗൺലോഡ് ചെയ്ത് tiiny.host എന്ന വെബ്സൈറ്റിൽ അപ്‌ലോഡ് ചെയ്യുക. അതിനുശേഷം അതിൽ നിന്നും ഷെയർ ചെയ്യുക!");
                 return;
             }
             
-            const longUrl = baseUrl + (window.lastGeneratedHash || window.location.hash);
+            // Add ?v=1 to force View Mode for the customer
+            let longUrl = baseUrl;
+            if (!longUrl.includes('?')) {
+                longUrl += '?v=1';
+            } else {
+                longUrl += '&v=1';
+            }
+            longUrl += (window.lastGeneratedHash || window.location.hash);
+
             let shareUrl = longUrl;
 
-            // Generate TinyURL if not already cached
             if(!lastGeneratedShortUrl) {
                 spanText.textContent = " Generating...";
                 loader.style.display = 'inline-block';
