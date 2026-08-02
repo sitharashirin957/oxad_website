@@ -377,7 +377,7 @@
 
             <div class="input-group">
                 <label>Full Name</label>
-                <input type="text" id="input-name" placeholder="E.g. Name Here">
+                <input type="text" id="input-name" placeholder="E.g. NAME HERE">
             </div>
 
             <div class="input-group">
@@ -413,7 +413,7 @@
     <script>
         // Global State
         let cardData = {
-            n: "Name Here",
+            n: "NAME HERE",
             t: "Title Here",
             p: "966500000000",
             l: "", // Logo Base64
@@ -526,12 +526,14 @@
 
         function saveCrop() {
             if(!cropper) return;
+            // Optimized dimensions and compression to keep URL length well within limits for TinyURL
+            const maxDim = currentCropType === 'logo' ? 180 : 140;
             const canvas = cropper.getCroppedCanvas({
-                maxWidth: 300, 
-                maxHeight: 300
+                maxWidth: maxDim, 
+                maxHeight: maxDim
             });
             
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
             
             if (currentCropType === 'logo') {
                 cardData.l = compressedBase64;
@@ -587,7 +589,7 @@
             setTimeout(() => { card.style.transform = 'scale(1)'; }, 300);
         }
 
-        // --- SHARE CARD WITH VIEW MODE ---
+        // --- SHARE CARD WITH VIEW MODE (Robust Shortener Fix) ---
         async function shareCard() {
             const btnText = document.getElementById('share-btn-text');
             const spanText = document.getElementById('share-text-span');
@@ -617,11 +619,14 @@
                 try {
                     const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
                     if(response.ok) {
-                        shareUrl = await response.text();
-                        lastGeneratedShortUrl = shareUrl;
+                        const shortText = await response.text();
+                        if(shortText && shortText.startsWith('http')) {
+                            shareUrl = shortText;
+                            lastGeneratedShortUrl = shareUrl;
+                        }
                     }
                 } catch(err) {
-                    console.log("URL shortener failed, using long URL.");
+                    console.log("URL shortener fallback to long URL.", err);
                 }
                 
                 loader.style.display = 'none';
@@ -639,15 +644,32 @@
             const originalHTML = btnText.innerHTML;
 
             if (navigator.share) {
-                navigator.share(shareData).catch(console.error);
-            } else {
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    btnText.innerHTML = '<i class="fas fa-check text-green-400"></i> Copied!';
-                    setTimeout(() => { btnText.innerHTML = originalHTML; }, 2000);
+                navigator.share(shareData).catch(() => {
+                    fallbackCopy(shareUrl, btnText, originalHTML);
                 });
+            } else {
+                fallbackCopy(shareUrl, btnText, originalHTML);
             }
         }
 
+        function fallbackCopy(url, btnElement, originalHTML) {
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                btnElement.innerHTML = '<i class="fas fa-check text-green-400"></i> Copied!';
+                setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000);
+            } catch (err) {
+                console.error('Failed to copy', err);
+                alert("Share Link: " + url);
+            }
+            document.body.removeChild(textArea);
+        }
+        
         // --- SAVE TO CONTACTS ---
         function downloadVCard() {
             const cleanPhone = (cardData.p || '').replace(/[^0-9+]/g, '');
