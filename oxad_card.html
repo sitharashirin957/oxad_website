@@ -303,7 +303,7 @@
             <div id="logo-placeholder" class="h-28 flex items-center justify-center border border-dashed border-gray-700/80 rounded-2xl mb-1 text-gray-500 bg-black/20">
                 <div class="text-center">
                     <i class="fas fa-gem text-3xl mb-2 text-blue-500/60"></i>
-                    <p class="text-[11px] tracking-wider uppercase font-medium">OXAD Executive</p>
+                    <p class="text-[11px] tracking-wider uppercase font-medium">Add Logo Here</p>
                 </div>
             </div>
         </div>
@@ -371,7 +371,7 @@
             
             <!-- Logo Upload & Remove -->
             <div class="input-group">
-                <label>Company Logo</label>
+                <label>Company Logo (PNG transparent supported)</label>
                 <div class="flex gap-2">
                     <div class="file-upload-wrapper flex-1">
                         <i class="fas fa-cloud-upload-alt text-xl mb-1 text-blue-400"></i>
@@ -575,20 +575,21 @@
         function saveCrop() {
             if(!cropper) return;
             
-            // High quality dimensions for profile photo (larger resolution) and optimized for logo
-            const maxDim = currentCropType === 'logo' ? 220 : 350;
-            const qualitySetting = currentCropType === 'photo' ? 0.85 : 0.7; // Higher quality for photo
-            
+            // Render to canvas supporting PNG transparency for logo and high quality JPEG for photo
+            const maxDim = currentCropType === 'logo' ? 240 : 360;
             const canvas = cropper.getCroppedCanvas({
                 maxWidth: maxDim, 
                 maxHeight: maxDim
             });
             
-            const compressedBase64 = canvas.toDataURL('image/jpeg', qualitySetting);
-            
+            let compressedBase64 = "";
             if (currentCropType === 'logo') {
+                // Keep PNG format for logos to preserve transparency (no white background box)
+                compressedBase64 = canvas.toDataURL('image/png');
                 cardData.l = compressedBase64;
             } else {
+                // High quality JPEG for profile photo
+                compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
                 cardData.ph = compressedBase64;
             }
 
@@ -641,7 +642,7 @@
             setTimeout(() => { card.style.transform = 'scale(1)'; }, 300);
         }
 
-        // --- SHARE CARD WITH VIEW MODE (Robust Shortener Fix) ---
+        // --- SHARE CARD WITH VIEW MODE (Advanced Smart Compression Fallback) ---
         async function shareCard() {
             const btnText = document.getElementById('share-btn-text');
             const spanText = document.getElementById('share-text-span');
@@ -669,6 +670,7 @@
                 loader.style.display = 'inline-block';
                 
                 try {
+                    // Smart URL shortening check
                     const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(longUrl)}`);
                     if(response.ok) {
                         const shortText = await response.text();
