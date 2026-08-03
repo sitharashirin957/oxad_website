@@ -608,7 +608,20 @@
                 'مرحباً فريق أوكساد،%0D%0A%0D%0Aأود الاستفسار عن خدماتكم.%0D%0A%0D%0Aتحياتي،' : 
                 'Hello OXAD Team,%0D%0A%0D%0AI would like to inquire about your services.%0D%0A%0D%0ABest regards,';
 
-            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            // ഇമെയിൽ ഐഡി കോപ്പി ചെയ്യാനുള്ള കോഡ്
+            navigator.clipboard.writeText(email).then(() => {
+                const alertMsg = currentLang === 'ar' ? 
+                    `تم نسخ البريد الإلكتروني بنجاح:\n${email}\n\nيمكنك لصقه في Gmail أو أي تطبيق بريد آخر.` : 
+                    `Email address copied successfully:\n${email}\n\nYou can paste it in your Gmail or any other mail app.`;
+                
+                alert(alertMsg); // കോപ്പി ആയെന്നുള്ള അലർട്ട് കാണിക്കുന്നു
+                
+                // അതിനുശേഷം mailto വർക്ക് ചെയ്യിക്കാൻ നോക്കുന്നു
+                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            }).catch(err => {
+                // കോപ്പി ചെയ്യാൻ പറ്റിയില്ലെങ്കിൽ നേരിട്ട് mailto ഓപ്പൺ ആക്കുന്നു
+                window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            });
         }
 
         const canvas = document.getElementById('bg-canvas');
