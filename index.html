@@ -408,7 +408,7 @@
         </div>
         <div class="nav-right">
             <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">عربي / EN</button>
-            <button class="cta-btn" onclick="openContact()">Business Enquiry</button>
+            <button class="cta-btn" id="contactBtnHeader" onclick="openContact()">Business Enquiry</button>
         </div>
     </header>
 
@@ -438,7 +438,7 @@
             <button class="close-modal" onclick="closeModal()">&times;</button>
             <h2 id="modalTitle">Service Title</h2>
             <p id="modalDesc">Detailed description goes here.</p>
-            <button class="cta-btn" onclick="openContact()">Enquire Now</button>
+            <button class="cta-btn" id="contactBtnModal" onclick="openContact()">Enquire Now</button>
         </div>
     </div>
 
@@ -575,12 +575,18 @@
                 document.getElementById('heroSubtitle').innerText = 'استكشف مجموعتنا الشاملة من حلول الإعلان والعلامات التجارية والتصنيع الفاخرة للشركات.';
                 document.getElementById('sectionTitle').innerText = 'المحفظة الكاملة';
                 document.getElementById('sectionSubtitle').innerText = 'انقر فوق أي منتج أو خدمة لاكتشاف المعايير العالمية';
+                
+                document.getElementById('contactBtnHeader').innerText = 'استفسار تجاري';
+                document.getElementById('contactBtnModal').innerText = 'استفسر الآن';
             } else {
                 document.getElementById('updateText').innerText = 'Website Update in Progress';
                 document.getElementById('heroTitle').innerText = 'Products & Services Catalog';
                 document.getElementById('heroSubtitle').innerText = 'Explore our comprehensive array of elite advertising, branding, fabrication, and promotional corporate solutions.';
                 document.getElementById('sectionTitle').innerText = 'Complete Portfolio';
                 document.getElementById('sectionSubtitle').innerText = 'Click or hover on any product or service to discover global standards';
+                
+                document.getElementById('contactBtnHeader').innerText = 'Business Enquiry';
+                document.getElementById('contactBtnModal').innerText = 'Enquire Now';
             }
             renderServices();
         }
@@ -596,7 +602,13 @@
         }
 
         function openContact() {
-            window.location.href = "mailto:info@oxad.com";
+            const email = "oxad.bs@gmail.com";
+            const subject = currentLang === 'ar' ? 'استفسار تجاري - OXAD' : 'Business Enquiry - OXAD';
+            const body = currentLang === 'ar' ? 
+                'مرحباً فريق أوكساد،%0D%0A%0D%0Aأود الاستفسار عن خدماتكم.%0D%0A%0D%0Aتحياتي،' : 
+                'Hello OXAD Team,%0D%0A%0D%0AI would like to inquire about your services.%0D%0A%0D%0ABest regards,';
+
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
         }
 
         const canvas = document.getElementById('bg-canvas');
